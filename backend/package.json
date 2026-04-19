@@ -1,0 +1,9 @@
+{
+  "name": "sun-ai-backend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node ../node_modules/nodemon/bin/nodemon.js server.js"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "name": "sun-ai",
+  "version": "1.0.0",
+  "description": "World's Most Advanced AI Search Engine - SUN ai",
+  "main": "backend/server.js",
+  "type": "module",
+  "scripts": {
+    "postinstall": "npm --prefix frontend install",
+    "start": "npm --prefix backend start",
+    "dev": "npm --prefix backend run dev",
+    "start:frontend": "npm --prefix frontend start",
+    "build": "npm --prefix frontend run build",
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "ai",
+    "search",
+    "rag",
+    "groq",
+    "llama",
+    "research"
+  ],
+  "author": "Elite AI Research Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "body-parser": "^1.20.2",
+    "groq-sdk": "^0.5.0",
+    "cheerio": "^1.0.0-rc.12",
+    "natural": "^6.7.0",
+    "node-cache": "^5.1.2",
+    "uuid": "^9.0.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "eslint": "^8.54.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
