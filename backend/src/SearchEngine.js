@@ -23,6 +23,10 @@ class SearchEngine {
     this.searchProvider = process.env.SEARCH_PROVIDER || 'auto';
     this.tavilyClient = null;
 
+    if (this.searchProvider === 'tavily' && !process.env.TAVILY_API_KEY) {
+      console.warn('SEARCH_PROVIDER=tavily but TAVILY_API_KEY is not set — falling back to DuckDuckGo');
+    }
+
     if (process.env.TAVILY_API_KEY && this.searchProvider !== 'duckduckgo') {
       try {
         this.tavilyClient = tavily({ apiKey: process.env.TAVILY_API_KEY });
@@ -82,8 +86,19 @@ class SearchEngine {
       const results = await this.fetchSearchResults(query, resultsPerQuery, timeContext);
 
       // Extract content from top results
+      // Tavily results already include content, so skip the extra HTTP scrape
       const enrichedResults = await Promise.all(
-        results.slice(0, depth).map(result => this.extractContent(result))
+        results.slice(0, depth).map(result => {
+          if (result.source === 'tavily') {
+            return {
+              ...result,
+              content: result.snippet,
+              wordCount: (result.snippet || '').split(/\s+/).length,
+              extracted: false
+            };
+          }
+          return this.extractContent(result);
+        })
       );
 
       // Cache results
