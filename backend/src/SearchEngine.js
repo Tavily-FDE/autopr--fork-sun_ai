@@ -3,6 +3,7 @@
 
 import axios from 'axios';
 import { load as cheerioLoad } from 'cheerio';
+import { tavily } from '@tavily/core';
 
 class SearchEngine {
   constructor() {
@@ -16,6 +17,19 @@ class SearchEngine {
 
     this.cache = new Map();
     this.requestDelay = 100; // ms between requests
+
+    // Tavily configuration: use SEARCH_PROVIDER env var (auto|tavily|duckduckgo)
+    // In "auto" mode, Tavily is used when TAVILY_API_KEY is set; otherwise DuckDuckGo.
+    this.searchProvider = process.env.SEARCH_PROVIDER || 'auto';
+    this.tavilyClient = null;
+
+    if (process.env.TAVILY_API_KEY && this.searchProvider !== 'duckduckgo') {
+      try {
+        this.tavilyClient = tavily({ apiKey: process.env.TAVILY_API_KEY });
+      } catch (error) {
+        console.error('Failed to initialize Tavily client:', error.message);
+      }
+    }
   }
 
   /**
@@ -83,9 +97,49 @@ class SearchEngine {
   }
 
   /**
+   * Fetch search results using Tavily API
+   */
+  async tavilySearch(query, limit = 8, timeContext = 'general') {
+    const options = {
+      maxResults: limit,
+      searchDepth: 'basic',
+      topic: 'general',
+    };
+
+    if (timeContext === 'recent') {
+      options.timeRange = 'month';
+    }
+
+    const response = await this.tavilyClient.search(query, options);
+
+    return (response.results || []).map((result, index) => ({
+      title: result.title || '',
+      url: result.url || '',
+      snippet: result.content || '',
+      position: index + 1,
+      source: 'tavily',
+      timestamp: new Date(),
+      credibility: this.estimateCredibility(result.url || '')
+    }));
+  }
+
+  /**
    * Fetch search results (using fallback method)
    */
   async fetchSearchResults(query, limit = 8, timeContext = 'general') {
+    // Use Tavily if available and provider allows it
+    if (this.tavilyClient && this.searchProvider !== 'duckduckgo') {
+      try {
+        return await this.tavilySearch(query, limit, timeContext);
+      } catch (error) {
+        console.error(`Tavily search failed for "${query}":`, error.message);
+        // Fall through to DuckDuckGo if provider is "auto"
+        if (this.searchProvider === 'tavily') {
+          return [];
+        }
+      }
+    }
+
     const results = [];
 
     try {

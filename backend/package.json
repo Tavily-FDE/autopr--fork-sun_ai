@@ -5,5 +5,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node ../node_modules/nodemon/bin/nodemon.js server.js"
+  },
+  "dependencies": {
+    "@tavily/core": "^0.6.4"
   }
 }
